@@ -1,0 +1,17 @@
+#!/usr/bin/env ruby
+
+require 'lanes'
+
+# load the Lanes settings file
+config = YAML.load_file( ENV['HOME'] + '/.lanes/lanes.yml')
+profile = config['profile']
+
+# hijack the AwsCli file variable
+ENV['AWSCLI_CONFIG_FILE']="~/.lanes/#{profile}.yml"
+
+# Populate our properties singleton as well
+settings = YAML.load_file( ENV['HOME'] + "/.lanes/#{profile}.yml")
+
+Props.instance.set(settings)
+Lanes2.start(ARGV)
+# TODO close the connection in the singleton
