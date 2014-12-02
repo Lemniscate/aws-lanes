@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["david@davidwelch.co"]
   spec.summary       = %q{Manage "lanes" of AWS machines}
   spec.description   = %q{Manage "lanes" of AWS machines, according to [principle here]}
-  spec.homepage      = ""
+  spec.homepage      = "https://github.com/Lemniscate/aws-lanes"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")

@@ -1,26 +1,29 @@
 # Lanes
 
-TODO: Write a gem description
+This helpful little command line tool helps manage "lanes" of servers on AWS.
 
-## Installation
+TODO: Describe lanes philosophy
 
-Add this line to your application's Gemfile:
 
-```ruby
-gem 'aws-lanes'
+## Installation & Usage
+
+1. Create some default profiles (TODO: have the app generate this itself)
 ```
+mkdir ~/.lanes
+echo 'profile: myapp' >> ~/.lanes/lanes.yml
+cat <<EOF >> ~/.lanes/myapp.yml
+aws_access_key_id: [AWS_ACCESS_KEY_HERE
+aws_secret_access_key: [AWS_SECRET_KEY_HERE]
+ssh:
+   mods:
+      dev:
+         identity: ~/.ssh/myapp-dev.pem
+         tunnel: 7979:localhost:5432
+EOF
+```
+2. Install the gem: `gem install awslanes`
+3. Run it and toy around: `lanes`
 
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install aws-lanes
-
-## Usage
-
-TODO: Write usage instructions here
 
 ## Contributing
 
