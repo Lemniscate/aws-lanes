@@ -35,8 +35,9 @@ class Lanes < Thor
   method_option :cmd, :type => :array
   method_option :urlConfirm, :type => :string
   method_option :urlConfirmTimeout, :type => :numeric
-  desc "exec [LANE] ", "Executes a command on all machines with support for confirming an endpoint is available after"
-  def exec(lane)
+  method_option :v, :type => :boolean
+  desc "sh [LANE] ", "Executes a command on all machines with support for confirming an endpoint is available after"
+  def sh(lane)
     servers = AWS.instance.fetchServers(lane)
     servers.sort_by{ |s| s[:ip] }
 
@@ -75,20 +76,29 @@ class Lanes < Thor
 
         confirmPath = options[:urlConfirm]
         if confirmPath != nil then
-          confirmTimeout = (options[:urlConfirmTimeout] or 30) * 1000;
-          startTime = Time.new.to_i;
+          confirmTimeout = (options[:urlConfirmTimeout] or 30);
+          startTime = Time.new.to_i
+
+          # we better sleep for a few, otherwise the shutdown won't have executed
+          puts "Sleeping for 5 seconds, then trying the confirmation endpoint for #{confirmTimeout} seconds..."
+          sleep 5
           while Time.new.to_i - startTime < confirmTimeout && servers.length > 0 do
             servers.each_with_index{ |server, index|
-              res = RestClient.get (confirmPath % server)
-              if res.code >= 200 && res.code < 300 then
-                puts "\t => #{server[:ip]} responded with #{res.code}"
-                servers.delete_at(index)
-              else
-                puts "\t XX #{server[:ip]} responded with #{res.code}"
+              begin
+                res = RestClient.get (confirmPath % server)
+                if res.code >= 200 && res.code < 300 then
+                  puts "\t => #{server[:ip]} responded with #{res.code}"
+                  servers.delete_at(index)
+                else
+                  puts "\t XX #{server[:ip]} responded with #{res.code}" if options[:v]
+                end
+              rescue => e
+                puts "\t XX #{server[:ip]} connection failed: #{e}" if options[:v]
               end
             }
 
             sleep 5 if servers.length > 0
+            puts "\t => #{servers.length} server(s) remaining..." if servers.length > 0
           end
 
           if servers.length == 0 then
