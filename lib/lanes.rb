@@ -33,13 +33,15 @@ class Lanes < Thor
   end
 
   method_option :cmd, :type => :array
+  method_option :urlConfirm, :type => :string
+  method_option :urlConfirmTimeout, :type => :numeric
   desc "exec [LANE] ", "Executes a command on all machines "
   def exec(lane)
     servers = AWS.instance.fetchServers(lane)
     servers.sort_by{ |s| s[:ip] }
 
     puts "Available Servers: "
-    servers.each_with_index {|server, index|
+    servers.each_with_index {|server|
       puts "\t%{name} (%{lane}) \t %{ip} \t %{id} " % server
     }
 
@@ -66,11 +68,38 @@ class Lanes < Thor
               ssh.exec!(command) do |channel, stream, data|
                 stdout << data
               end
-              puts "Completed. %{name}\n\n" % server
+              puts "Completed. %{name}\n\tOutput: #{stdout}\n\n " % server
             end
-          res = RestClient.get server[:ip] + ':8080/internal/info'
-          puts res.code
         }
+
+
+        confirmPath = options[:urlConfirm]
+        if confirmPath != nil then
+          confirmTimeout = (options[:urlConfirmTimeout] or 30) * 1000;
+          startTime = Time.new.to_i;
+          while Time.new.to_i - startTime < confirmTimeout && servers.length > 0 do
+            servers.each_with_index{ |server, index|
+              res = RestClient.get (confirmPath % server)
+              if res.code >= 200 && res.code < 300 then
+                puts "\t => #{server[:ip]} responded with #{res.code}"
+                servers.delete_at(index)
+              else
+                puts "\t XX #{server[:ip]} responded with #{res.code}"
+              end
+            }
+
+            sleep 5 if servers.length > 0
+          end
+
+          if servers.length == 0 then
+            puts "Successfully confirmed endpoints responded with a 2XX"
+          else
+            puts "The following server(s) did not respond with a 2XX:"
+            servers.each{ |server|
+              puts "\t%{name} (%{lane}) \t %{ip} \t %{id} " % server
+            }
+          end
+        end
       else
         puts 'Aborted!'
         exit 1
