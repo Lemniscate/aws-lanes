@@ -4,12 +4,12 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'lanes/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "lanes"
-  spec.version       = Lanes::VERSION
+  spec.name          = "awslanes"
+  spec.version       = AwsLanes::VERSION
   spec.authors       = ["Dave Welch"]
   spec.email         = ["david@davidwelch.co"]
-  spec.summary       = %q{Manage "lanes" of AWS machines. Required.}
-  spec.description   = %q{Manage "lanes" of AWS machines, according to [principle]. Optional.}
+  spec.summary       = %q{Manage "lanes" of AWS machines}
+  spec.description   = %q{Manage "lanes" of AWS machines, according to [principle here]}
   spec.homepage      = ""
   spec.license       = "MIT"
 
@@ -23,4 +23,5 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "thor"
   spec.add_dependency "awscli"
+  spec.add_dependency "rest_client"
 end

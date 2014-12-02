@@ -19,12 +19,12 @@ class Props
     # puts @props
   end
 
-  def sshMod(server_name)
+  def sshMod(lane)
     ssh = @props['ssh']
     if ssh then
       mods = ssh['mods']
       if mods then
-        p = mods[server_name]
+        p = mods[lane]
         return p
       end
     end

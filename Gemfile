@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-# Specify your gem's dependencies in lanes.gemspec
+# Specify your gem's dependencies in awslanes.gemspec
 gemspec
 
-gem 'lanes', :path => ''
+gem 'awslanes', :path => ''
