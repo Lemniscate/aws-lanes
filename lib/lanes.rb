@@ -35,7 +35,7 @@ class Lanes < Thor
   method_option :cmd, :type => :array
   method_option :urlConfirm, :type => :string
   method_option :urlConfirmTimeout, :type => :numeric
-  desc "exec [LANE] ", "Executes a command on all machines "
+  desc "exec [LANE] ", "Executes a command on all machines with support for confirming an endpoint is available after"
   def exec(lane)
     servers = AWS.instance.fetchServers(lane)
     servers.sort_by{ |s| s[:ip] }
