@@ -3,8 +3,7 @@ require "lanes/aws"
 require "lanes/props"
 require "thor"
 require 'yaml'
-require 'AwsCli'
-require 'AwsCli/CLI/EC2/Instances'
+require 'awscli'
 require 'rest_client'
 
 class Lanes < Thor
@@ -36,6 +35,7 @@ class Lanes < Thor
   method_option :urlConfirm, :type => :string
   method_option :urlConfirmTimeout, :type => :numeric
   method_option :v, :type => :boolean
+  method_option :confirm, :type => :boolean
   desc "sh [LANE] ", "Executes a command on all machines with support for confirming an endpoint is available after"
   def sh(lane)
     servers = AWS.instance.fetchServers(lane)
@@ -53,9 +53,11 @@ class Lanes < Thor
 
     if options[:confirm] then
       puts "Confirmed via command line. Moving forward with execution"
+      confirm = 'CONFIRM'
     else
       command = options[:cmd].join(' ')
       confirm = ask "Type CONFIRM to execute \"#{command} \" on these machines:"
+    end
       if confirm == 'CONFIRM' then
         servers.each{ |server|
           Net::SSH.start( server[:ip], 'ec2-user',
