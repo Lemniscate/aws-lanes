@@ -58,64 +58,64 @@ class Lanes < Thor
       command = options[:cmd].join(' ')
       confirm = ask "Type CONFIRM to execute \"#{command} \" on these machines:"
     end
-      if confirm == 'CONFIRM' then
-        servers.each{ |server|
-          Net::SSH.start( server[:ip], 'ec2-user',
-            :keys => [identity],
-            # :verbose => :debug,
-            :encryption => "blowfish-cbc",
-            :compression => "zlib",
-            :host_key => "ssh-rsa") do |ssh|
-              puts "Executing on %{name} ( %{ip} ):\t #{command} \n" % server
-              stdout = ''
-              ssh.exec!(command) do |channel, stream, data|
-                stdout << data
-              end
-              puts "Completed. %{name}\n\tOutput: #{stdout}\n\n " % server
+
+    if confirm == 'CONFIRM' then
+      servers.each{ |server|
+        Net::SSH.start( server[:ip], 'ec2-user',
+          :keys => [identity],
+          # :verbose => :debug,
+          :encryption => "blowfish-cbc",
+          :compression => "zlib",
+          :host_key => "ssh-rsa") do |ssh|
+            puts "Executing on %{name} ( %{ip} ):\t #{command} \n" % server
+            stdout = ''
+            ssh.exec!(command) do |channel, stream, data|
+              stdout << data
             end
-        }
+            puts "Completed. %{name}\n\tOutput: #{stdout}\n\n " % server
+          end
+      }
 
 
-        confirmPath = options[:urlConfirm]
-        if confirmPath != nil then
-          confirmTimeout = (options[:urlConfirmTimeout] or 30);
-          startTime = Time.new.to_i
+      confirmPath = options[:urlConfirm]
+      if confirmPath != nil then
+        confirmTimeout = (options[:urlConfirmTimeout] or 30);
+        startTime = Time.new.to_i
 
-          # we better sleep for a few, otherwise the shutdown won't have executed
-          puts "Sleeping for 5 seconds, then trying the confirmation endpoint for #{confirmTimeout} seconds..."
-          sleep 5
-          while Time.new.to_i - startTime < confirmTimeout && servers.length > 0 do
-            servers.each_with_index{ |server, index|
-              begin
-                res = RestClient.get (confirmPath % server)
-                if res.code >= 200 && res.code < 300 then
-                  puts "\t => #{server[:ip]} responded with #{res.code}"
-                  servers.delete_at(index)
-                else
-                  puts "\t XX #{server[:ip]} responded with #{res.code}" if options[:v]
-                end
-              rescue => e
-                puts "\t XX #{server[:ip]} connection failed: #{e}" if options[:v]
+        # we better sleep for a few, otherwise the shutdown won't have executed
+        puts "Sleeping for 5 seconds, then trying the confirmation endpoint for #{confirmTimeout} seconds..."
+        sleep 5
+        while Time.new.to_i - startTime < confirmTimeout && servers.length > 0 do
+          servers.each_with_index{ |server, index|
+            begin
+              res = RestClient.get (confirmPath % server)
+              if res.code >= 200 && res.code < 300 then
+                puts "\t => #{server[:ip]} responded with #{res.code}"
+                servers.delete_at(index)
+              else
+                puts "\t XX #{server[:ip]} responded with #{res.code}" if options[:v]
               end
-            }
+            rescue => e
+              puts "\t XX #{server[:ip]} connection failed: #{e}" if options[:v]
+            end
+          }
 
-            sleep 5 if servers.length > 0
-            puts "\t => #{servers.length} server(s) remaining..." if servers.length > 0
-          end
-
-          if servers.length == 0 then
-            puts "Successfully confirmed endpoints responded with a 2XX"
-          else
-            puts "The following server(s) did not respond with a 2XX:"
-            servers.each{ |server|
-              puts "\t%{name} (%{lane}) \t %{ip} \t %{id} " % server
-            }
-          end
+          sleep 5 if servers.length > 0
+          puts "\t => #{servers.length} server(s) remaining..." if servers.length > 0
         end
-      else
-        puts 'Aborted!'
-        exit 1
+
+        if servers.length == 0 then
+          puts "Successfully confirmed endpoints responded with a 2XX"
+        else
+          puts "The following server(s) did not respond with a 2XX:"
+          servers.each{ |server|
+            puts "\t%{name} (%{lane}) \t %{ip} \t %{id} " % server
+          }
+        end
       end
+    else
+      puts 'Aborted!'
+      exit 1
     end
   end
 
