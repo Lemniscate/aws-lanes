@@ -51,11 +51,11 @@ class Lanes < Thor
     identity = if mods['identity'] then mods['identity'] else '' end
     puts "Identity file #{mods['identity']} will be used" if identity
 
+    command = options[:cmd].join(' ')
     if options[:confirm] then
-      puts "Confirmed via command line. Moving forward with execution"
+      puts "Confirmed via command line. Moving forward with execution of \"#{command}\" on these machines:"
       confirm = 'CONFIRM'
     else
-      command = options[:cmd].join(' ')
       confirm = ask "Type CONFIRM to execute \"#{command} \" on these machines:"
     end
 
