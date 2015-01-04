@@ -7,6 +7,14 @@ require 'awscli'
 require 'rest_client'
 
 class Lanes < Thor
+
+  desc "switch [profile]", "Switches AWS profiles (e.g. ~/.lanes/lanes.yml entry)"
+  def switch(profile)
+    data = YAML.load_file "~/.lanes/lanes.yml"
+    data["profile"] = profile
+    File.open("~/.lanes/lanes.yml", 'w') { |f| YAML.dump(data, f) }
+  end
+
   desc "list [LANE]", "Lists all servers name + ip + Instance ID, optionally filtered by lane 2"
   def list(lane=nil)
     servers = AWS.instance.fetchServers(lane)
