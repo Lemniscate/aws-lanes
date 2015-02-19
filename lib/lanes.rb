@@ -1,3 +1,4 @@
+
 require "lanes/version"
 require "lanes/aws"
 require "lanes/props"
@@ -12,12 +13,16 @@ module LanesCli
 
     desc "switch [profile]", "Switches AWS profiles (e.g. ~/.lanes/lanes.yml entry)"
     def switch(profile)
+      puts "hi"
       path = ENV['HOME'] + '/.lanes/lanes.yml'
-          data = YAML.load_file path
+      data = YAML.load_file path
       data["profile"] = profile
       File.open(path, 'w') { |f| YAML.dump(data, f) }
       puts "Switched to #{profile}"
     end
+
+
+
 
     desc "list [LANE]", "Lists all servers name + ip + Instance ID, optionally filtered by lane 2"
     def list(lane=nil)
@@ -138,6 +143,7 @@ module LanesCli
     desc 'file SUBCOMMAND ...ARGS', 'Push / pull files'
     subcommand 'file', LanesCli::FileCmd
 
+
     no_commands{
       def chooseServer(lane=nul)
         servers = AWS.instance.fetchServers(lane)
@@ -167,7 +173,8 @@ module LanesCli
     settings = YAML.load_file( ENV['HOME'] + "/.lanes/#{profile}.yml")
 
     Props.instance.set(settings)
-    Lanes.start( ENV['RUBYMINE'].split(' ') )
+
+    LanesCli::Lanes.start( ENV['RUBYMINE'].split(' ') )
     # TODO close the connection in the singleton
   end
 end
