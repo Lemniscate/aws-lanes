@@ -13,6 +13,6 @@ ENV['AWSCLI_CONFIG_FILE']="~/.lanes/#{profile}.yml"
 settings = YAML.load_file( ENV['HOME'] + "/.lanes/#{profile}.yml")
 
 Props.instance.set(settings)
-Lanes.start(ARGV)
 
+LanesCli::Lanes.start( ARGV )
 # TODO close the connection in the singleton

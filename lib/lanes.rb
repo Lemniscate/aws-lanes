@@ -13,7 +13,6 @@ module LanesCli
 
     desc "switch [profile]", "Switches AWS profiles (e.g. ~/.lanes/lanes.yml entry)"
     def switch(profile)
-      puts "hi"
       path = ENV['HOME'] + '/.lanes/lanes.yml'
       data = YAML.load_file path
       data["profile"] = profile
@@ -80,7 +79,8 @@ module LanesCli
 
       if confirm == 'CONFIRM' then
         servers.each{ |server|
-          Net::SSH.start( server[:ip], 'ec2-user',
+          user = if mods['user'] then mods['user'] else 'ec2-user' end
+          Net::SSH.start( server[:ip], user,
             :keys => [identity],
             # :verbose => :debug,
             :encryption => "blowfish-cbc",
@@ -161,6 +161,9 @@ module LanesCli
     }
   end
 
+  ################################################################
+  # IMPORTANT: IF YOU CHANGE STUFF BELOW, CHANGE IT IN bin/lanes #
+  ################################################################
   if ENV['RUBYMINE'] != nil
     # load the Lanes settings file
     config = YAML.load_file( ENV['HOME'] + '/.lanes/lanes.yml')
