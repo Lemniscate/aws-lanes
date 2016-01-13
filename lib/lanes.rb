@@ -1,4 +1,4 @@
-
+require "net/ssh"
 require "lanes/version"
 require "lanes/aws"
 require "lanes/props"
