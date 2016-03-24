@@ -24,7 +24,7 @@ module LanesCli
     desc "list [LANE]", "Lists all servers name + ip + Instance ID, optionally filtered by lane 2"
     def list(lane=nil)
       servers = AWS.instance.fetchServers(lane)
-      servers.sort_by{ |s| s[:lane] }
+      servers.sort_by{ |s| [s[:lane], s[:name]] }
       servers.each{|server|
         puts "\t%{name} (%{lane}) \t %{ip} \t %{id} " % server
       }
