@@ -1,9 +1,9 @@
-require "net/ssh"
-require "lanes/version"
-require "lanes/aws"
-require "lanes/props"
-require "lanes/file"
-require "thor"
+require 'net/ssh'
+require 'lanes/version'
+require 'lanes/aws'
+require 'lanes/props'
+require 'lanes/file'
+require 'thor'
 require 'yaml'
 require 'awscli'
 require 'rest_client'
@@ -17,11 +17,9 @@ module LanesCli
       data = YAML.load_file path
       data["profile"] = profile
       File.open(path, 'w') { |f| YAML.dump(data, f) }
+
       puts "Switched to #{profile}"
     end
-
-
-
 
     desc "list [LANE]", "Lists all servers name + ip + Instance ID, optionally filtered by lane 2"
     def list(lane=nil)
@@ -37,10 +35,11 @@ module LanesCli
       chosen = chooseServer(lane)
       if chosen != nil
         mods = Props.instance.sshMod(chosen[:lane])
-        identity = if mods['identity'] then '-i ' + mods['identity'] else '' end
-        tunnel = if mods['tunnel'] then '-L' + mods['tunnel'] else '' end
-        user = if mods['user'] then mods['user'] else 'ec2-user' end
-        cmd = "ssh #{user}@%{ip} #{identity} #{tunnel}" % chosen
+        identity = "-i #{mods['identity']}" if mods['identity']
+        tunnels = "-L#{mods['tunnel']}" if mods['tunnel']
+        tunnels = mods['tunnels'].map{|tunnel| "-L#{tunnel}"}.join(' ') if mods['tunnels']
+        user = mods['user'] ? mods['user'] : 'ec2-user'
+        cmd = "ssh #{user}@%{ip} #{identity} #{tunnels}" % chosen
         exec cmd
       else
         puts 'Canceled'
@@ -145,7 +144,7 @@ module LanesCli
 
 
     no_commands{
-      def chooseServer(lane=nul)
+      def chooseServer(lane=nil)
         servers = AWS.instance.fetchServers(lane)
         servers.sort_by{ |s| s[:lane] }
 
@@ -161,23 +160,21 @@ module LanesCli
     }
   end
 
-  ################################################################
-  # IMPORTANT: IF YOU CHANGE STUFF BELOW, CHANGE IT IN bin/lanes #
-  ################################################################
-  if ENV['RUBYMINE'] != nil
-    # load the Lanes settings file
-    config = YAML.load_file( ENV['HOME'] + '/.lanes/lanes.yml')
-    profile = config['profile']
+  # load the Lanes settings file
+  lanes_config = YAML.load_file( ENV['HOME'] + '/.lanes/lanes.yml')
+  profile = lanes_config['profile']
+  proflie_config_path = ENV['HOME'] + "/.lanes/#{profile}.yml"
 
+  if File.exist? proflie_config_path
     # hijack the AwsCli file variable
-    ENV['AWSCLI_CONFIG_FILE']="~/.lanes/#{profile}.yml"
+    ENV['AWSCLI_CONFIG_FILE']=proflie_config_path
 
     # Populate our properties singleton as well
-    settings = YAML.load_file( ENV['HOME'] + "/.lanes/#{profile}.yml")
+    settings = YAML.load_file proflie_config_path
 
     Props.instance.set(settings)
 
-    LanesCli::Lanes.start( ENV['RUBYMINE'].split(' ') )
     # TODO close the connection in the singleton
   end
+
 end
