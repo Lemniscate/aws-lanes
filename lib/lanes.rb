@@ -163,14 +163,14 @@ module LanesCli
   # load the Lanes settings file
   lanes_config = YAML.load_file( ENV['HOME'] + '/.lanes/lanes.yml')
   profile = lanes_config['profile']
-  proflie_config_path = ENV['HOME'] + "/.lanes/#{profile}.yml"
+  profile_config_path = ENV['HOME'] + "/.lanes/#{profile}.yml"
 
-  if File.exist? proflie_config_path
+  if File.exist? profile_config_path
     # hijack the AwsCli file variable
-    ENV['AWSCLI_CONFIG_FILE']=proflie_config_path
+    ENV['AWSCLI_CONFIG_FILE']=profile_config_path
 
     # Populate our properties singleton as well
-    settings = YAML.load_file proflie_config_path
+    settings = YAML.load_file profile_config_path
 
     Props.instance.set(settings)
 
