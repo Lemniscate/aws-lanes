@@ -26,4 +26,5 @@ Gem::Specification.new do |spec|
   spec.add_dependency "awscli"
   spec.add_dependency "net-ssh"
   spec.add_dependency "rest-client"
+  spec.add_dependency "command_line_reporter"
 end

@@ -7,9 +7,11 @@ require 'thor'
 require 'yaml'
 require 'awscli'
 require 'rest_client'
+require 'command_line_reporter'
 
 module LanesCli
   class Lanes < Thor
+    include CommandLineReporter
 
     desc "switch [profile]", "Switches AWS profiles (e.g. ~/.lanes/lanes.yml entry)"
     def switch(profile)
@@ -25,9 +27,8 @@ module LanesCli
     def list(lane=nil)
       servers = AWS.instance.fetchServers(lane)
       servers.sort_by!{ |s| [s[:lane], s[:name]] }
-      servers.each{|server|
-        puts "\t%{name} (%{lane}) \t %{ip} \t %{id} " % server
-      }
+      display_server_table(servers)
+      
     end
 
     desc "ssh [LANE]", "Lists all servers name + ip + Instance ID, optionally filtered by lane, and prompts which one for ssh"
@@ -58,11 +59,7 @@ module LanesCli
       servers = AWS.instance.fetchServers(lane)
       servers.sort_by{ |s| s[:ip] }
 
-      puts "Available Servers: "
-      servers.each_with_index {|server|
-        puts "\t%{name} (%{lane}) \t %{ip} \t %{id} " % server
-      }
-
+      display_server_table(servers, title: "Available Servers:")
 
       mods = Props.instance.sshMod(lane)
       identity = if mods['identity'] then mods['identity'] else '' end
@@ -147,15 +144,31 @@ module LanesCli
       def chooseServer(lane=nil)
         servers = AWS.instance.fetchServers(lane)
         servers.sort_by!{ |s| [s[:lane], s[:name]] }
-
-        puts "Available Servers: "
-        servers.each_with_index {|server, index|
-          i = index + 1
-          puts "\t#{i}) %{name} (%{lane}) \t %{ip} \t %{id} " % server
-        }
+        display_server_table(servers, title: "Available Servers:", display_index: true)
 
         choice = ask "Which server: "
         chosen = servers[ choice.to_i - 1 ] if choice != ''
+      end
+      
+      def display_server_table(servers,ops={})
+        header :title => ops[:title] || 'AWS Servers'
+        table border: true do
+          row header: true, color: 'white'  do
+            column 'INDEX', width: 5, align: 'center' if ops[:display_index]
+            column 'SERVER', width: 30
+            column 'IP ADDRESS', width: 20
+            column 'ID', width: 15
+          end
+
+          servers.each_with_index do |server, index|  
+            row :color => 'green', :bold => true do
+              column (index+1).to_s if ops[:display_index]
+              column "#{server[:name]} (#{server[:lane]})"
+              column server[:ip]
+              column server[:id]
+            end
+          end
+        end
       end
     }
   end
