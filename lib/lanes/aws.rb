@@ -19,11 +19,13 @@ class AWS
           :id => server.id
       }
       if s[:ip]
-        if s[:lane] != nil and (lane == nil or lane == s[:lane])
+        if lane == nil or lane == s[:lane]
           servers.push s
         end
       end
     };
+
+    servers.sort_by!{ |s| [s[:lane] ? s[:lane] : "zzz", s[:name]] }
 
     return servers
   end

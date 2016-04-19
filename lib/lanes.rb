@@ -26,7 +26,6 @@ module LanesCli
     desc "list [LANE]", "Lists all servers name + ip + Instance ID, optionally filtered by lane 2"
     def list(lane=nil)
       servers = AWS.instance.fetchServers(lane)
-      servers.sort_by!{ |s| [s[:lane], s[:name]] }
       display_server_table(servers)
       
     end
@@ -143,7 +142,6 @@ module LanesCli
     no_commands{
       def chooseServer(lane=nil)
         servers = AWS.instance.fetchServers(lane)
-        servers.sort_by!{ |s| [s[:lane], s[:name]] }
         display_server_table(servers, title: "Available Servers:", display_index: true)
 
         choice = ask "Which server: "
