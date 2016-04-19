@@ -155,6 +155,7 @@ module LanesCli
         table border: true do
           row header: true, color: 'white'  do
             column 'INDEX', width: 5, align: 'center' if ops[:display_index]
+            column 'LANE', width: 15
             column 'SERVER', width: 30
             column 'IP ADDRESS', width: 20
             column 'ID', width: 15
@@ -163,7 +164,8 @@ module LanesCli
           servers.each_with_index do |server, index|  
             row :color => 'green', :bold => true do
               column (index+1).to_s if ops[:display_index]
-              column "#{server[:name]} (#{server[:lane]})"
+              column server[:lane]
+              column server[:name]
               column server[:ip]
               column server[:id]
             end
